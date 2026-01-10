@@ -14,7 +14,7 @@ Features:
 
 Run:
     pip install streamlit groq python-docx pydantic
-    streamlit run prd_generator.py
+    streamlit run spec_to_prd_app.py
 """
 
 import json
@@ -542,7 +542,7 @@ if "generation_complete" not in st.session_state:
 if "editing_section" not in st.session_state:
     st.session_state.editing_section = None
 if "api_key" not in st.session_state:
-    st.session_state.api_key = os.getenv("GROQ_API_KEY", "")
+    st.session_state.api_key = ""
 if "model" not in st.session_state:
     st.session_state.model = MODELS[0]
 
@@ -582,16 +582,21 @@ with st.sidebar:
     
     st.divider()
     
-    st.subheader("🤖 Settings")
+    # ==========================================================================
+    # SETTINGS - API KEY HIDDEN, LOADED FROM SECRETS
+    # ==========================================================================
+    st.subheader("⚙️ Settings")
     
-    api_key = st.text_input(
-        "Groq API Key",
-        type="password",
-        value=st.session_state.api_key,
-        help="Free at console.groq.com/keys"
-    )
-    st.session_state.api_key = api_key
+    # Load API key from Streamlit secrets (hidden from UI)
+    api_key_loaded = False
+    if hasattr(st, 'secrets') and "GROQ_API_KEY" in st.secrets:
+        st.session_state.api_key = st.secrets["GROQ_API_KEY"]
+        api_key_loaded = True
+    elif os.getenv("GROQ_API_KEY"):
+        st.session_state.api_key = os.getenv("GROQ_API_KEY")
+        api_key_loaded = True
     
+    # Model selection
     model = st.selectbox(
         "Model",
         MODELS,
@@ -599,15 +604,17 @@ with st.sidebar:
     )
     st.session_state.model = model
     
-    if api_key:
-        st.success("✅ Ready")
+    # Status indicator
+    if api_key_loaded:
+        st.success("✅ API Connected")
     else:
-        st.warning("⚠️ Need API Key")
-        st.markdown("[Get free key →](https://console.groq.com/keys)")
+        st.error("❌ API key not configured")
+        st.caption("Add GROQ_API_KEY to Streamlit secrets")
     
     st.divider()
-    prds = load_prds()
-    st.metric("PRDs Created", len(prds))
+    
+    # About section
+    st.caption("Built by Prem Dutta")
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -615,7 +622,7 @@ with st.sidebar:
 
 def get_ai_client():
     if not st.session_state.api_key:
-        st.error("Please enter your Groq API key in the sidebar")
+        st.error("API key not configured. Please add GROQ_API_KEY to your Streamlit secrets.")
         st.stop()
     return AIClient(st.session_state.api_key, st.session_state.model)
 
@@ -749,7 +756,7 @@ Timeline: Q1"""
                 elif not raw_input.strip():
                     st.error("Please enter your notes/requirements")
                 elif not st.session_state.api_key:
-                    st.error("Please enter your Groq API key in the sidebar")
+                    st.error("API key not configured. Please add GROQ_API_KEY to Streamlit secrets.")
                 else:
                     st.session_state.current_prd["name"] = prd_name.strip()
                     st.session_state.current_prd["raw_input"] = raw_input.strip()
@@ -997,4 +1004,4 @@ elif st.session_state.page == "view_prd":
 # =============================================================================
 
 st.markdown("---")
-st.caption("PRD Generator • Professional PRDs in seconds")
+st.caption("PRD Generator • Built by Prem Dutta")
