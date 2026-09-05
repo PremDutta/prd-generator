@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MarkdownView from "./MarkdownView.jsx";
 
 function wordCount(text) {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
@@ -67,7 +68,7 @@ export default function SectionCard({ section, content, onSave, onRegenerate }) 
           </div>
         </div>
       ) : (
-        <div className="prose prose-sm max-w-none whitespace-pre-wrap text-slate-700">{content}</div>
+        <MarkdownView content={content} />
       )}
 
       <div className="mt-4 border-t border-slate-100 pt-3">

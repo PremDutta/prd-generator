@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api.js";
+import MarkdownView from "../components/MarkdownView.jsx";
 
 export default function Shared() {
   const { shareId } = useParams();
@@ -28,7 +29,9 @@ export default function Shared() {
         This PRD was shared with you as a read-only link.
       </div>
       <h1 className="mb-4 text-2xl font-bold text-slate-900">{prd.name}</h1>
-      <div className="card whitespace-pre-wrap p-6 text-sm text-slate-700">{prd.content}</div>
+      <div className="card p-6">
+        <MarkdownView content={prd.content} />
+      </div>
       <button className="btn-primary mt-4" onClick={importPrd} disabled={saved}>
         {saved ? "✅ Saved to your library" : "💾 Save to My PRDs"}
       </button>
