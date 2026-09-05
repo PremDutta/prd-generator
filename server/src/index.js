@@ -1,4 +1,7 @@
 import "dotenv/config";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import express from "express";
 import cors from "cors";
 import { nanoid } from "nanoid";
@@ -13,6 +16,9 @@ import {
   parseSectionsFromContent,
 } from "./sections.js";
 import { toMarkdown, toHtml, toDocx } from "./exporters.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const WEB_DIST = path.join(__dirname, "..", "..", "web", "dist");
 
 const app = express();
 app.use(cors());
@@ -204,6 +210,19 @@ app.post("/api/shared/:shareId/import", (req, res) => {
   });
   res.json(imported);
 });
+
+// ---------------------------------------------------------------------------
+// Serve the built frontend (web/dist) so the whole app is one deployable
+// service with one URL. Local dev instead runs the Vite dev server separately
+// and proxies /api to this server, so this block is a no-op until you build.
+// ---------------------------------------------------------------------------
+
+if (fs.existsSync(WEB_DIST)) {
+  app.use(express.static(WEB_DIST));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(WEB_DIST, "index.html"));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`PRD Generator API listening on http://localhost:${PORT}`);
