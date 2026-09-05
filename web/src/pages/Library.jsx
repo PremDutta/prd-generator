@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api.js";
 import StatusBadge from "../components/StatusBadge.jsx";
-
-const STATUSES = ["Draft", "In Review", "Approved"];
+import { STATUSES } from "../constants.js";
 
 export default function Library() {
   const [prds, setPrds] = useState([]);

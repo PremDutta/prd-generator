@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api.js";
-
-const STATUSES = ["Draft", "In Review", "Approved"];
+import { STATUSES } from "../constants.js";
 
 export default function NewPrd() {
   const navigate = useNavigate();

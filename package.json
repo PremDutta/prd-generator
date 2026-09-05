@@ -1,0 +1,15 @@
+{
+  "name": "prd-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generate FAANG-quality PRDs from rough notes, with AI-refinable sections and honest gap-flagging instead of invented numbers.",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix web",
+    "dev": "concurrently -n server,web -c blue,magenta \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
+    "build": "npm run build --prefix web",
+    "start": "npm run build && npm start --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

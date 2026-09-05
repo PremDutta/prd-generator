@@ -3,8 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "../api.js";
 import { parseSections, buildContent } from "../prdContent.js";
 import SectionCard from "../components/SectionCard.jsx";
-
-const STATUSES = ["Draft", "In Review", "Approved"];
+import { STATUSES } from "../constants.js";
 
 export default function PrdView() {
   const { id } = useParams();
