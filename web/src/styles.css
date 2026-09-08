@@ -2,27 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted (SIL OFL 1.1 — free for commercial use):
+   Overused Grotesk by RandomMaerks, github.com/RandomMaerks/Overused-Grotesk
+   Departure Mono by Helena Zhang, departuremono.com */
+@font-face {
+  font-family: "Overused Grotesk";
+  src: url("/fonts/OverusedGrotesk-Roman.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Overused Grotesk";
+  src: url("/fonts/OverusedGrotesk-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Overused Grotesk";
+  src: url("/fonts/OverusedGrotesk-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Overused Grotesk";
+  src: url("/fonts/OverusedGrotesk-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Departure Mono";
+  src: url("/fonts/DepartureMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Overused Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: theme("colors.slate.900");
+  background: theme("colors.slate.50");
+}
+
+::selection {
+  background: theme("colors.brand.200");
+  color: theme("colors.brand.900");
+}
+
+@layer base {
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-[9px] px-4 py-2 text-sm font-medium
+      transition-all duration-150 ease-out
+      disabled:cursor-not-allowed disabled:opacity-50
+      active:scale-[0.97];
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+    @apply btn bg-brand-600 text-white shadow-soft hover:bg-brand-700 hover:shadow-brand-glow;
   }
   .btn-secondary {
-    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50;
+    @apply btn border border-slate-200 bg-white text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50;
   }
   .btn-ghost {
-    @apply btn text-slate-600 hover:bg-slate-100;
+    @apply btn text-slate-500 hover:bg-slate-100 hover:text-slate-900;
   }
   .card {
-    @apply bg-white border border-slate-200 rounded-xl shadow-sm;
+    @apply rounded-[10px] border border-slate-200/80 bg-white shadow-card transition-shadow duration-150;
+  }
+  .card-hover {
+    @apply hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-elevated;
   }
   .input {
-    @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent;
+    @apply w-full rounded-[9px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900
+      shadow-xs transition-shadow duration-150 placeholder:text-slate-400
+      focus:border-brand-400 focus:outline-none focus:ring-4 focus:ring-brand-100;
+  }
+
+  /* Skeleton loaders — a soft shimmer sweep over a neutral block, sized/shaped per-use via className. */
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-slate-200/70;
+    background-image: linear-gradient(
+      90deg,
+      rgba(226, 232, 240, 0) 0,
+      rgba(226, 232, 240, 0.8) 50%,
+      rgba(226, 232, 240, 0) 100%
+    );
+    background-size: 800px 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
   }
 }

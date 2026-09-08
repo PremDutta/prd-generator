@@ -37,6 +37,8 @@ router.post("/:id/duplicate", (req, res) => {
     content: prd.content,
     status: "Draft",
     tags: prd.tags,
+    templateId: prd.templateId,
+    meta: prd.meta,
   });
   res.json(copy);
 });

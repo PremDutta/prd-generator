@@ -1,14 +1,26 @@
 import { Router } from "express";
-import { MODELS } from "../groqClient.js";
-import { SECTIONS } from "../sections.js";
+import { availableModels, defaultModelKey } from "../providers.js";
+import { TEMPLATES } from "../templates/index.js";
 
 const router = Router();
 
 router.get("/", (_req, res) => {
   res.json({
-    models: MODELS,
-    sections: SECTIONS.map(({ id, name, icon }) => ({ id, name, icon })),
-    apiKeyConfigured: !!process.env.GROQ_API_KEY,
+    models: availableModels(),
+    defaultModel: defaultModelKey(),
+    templates: Object.fromEntries(
+      Object.values(TEMPLATES).map((t) => [
+        t.id,
+        {
+          id: t.id,
+          name: t.name,
+          description: t.description,
+          sections: t.sections.map(({ id, name, icon, generated }) => ({ id, name, icon, generated })),
+        },
+      ])
+    ),
+    groqKeyConfigured: !!process.env.GROQ_API_KEY,
+    anthropicKeyConfigured: !!process.env.ANTHROPIC_API_KEY,
   });
 });
 

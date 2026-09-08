@@ -1,11 +1,16 @@
-// PRD section definitions and prompt templates.
+// The original 8-section "FAANG-style" PRD template.
 
-export const SECTIONS = [
-  {
-    id: "overview",
-    name: "Overview",
-    icon: "🧭",
-    prompt: `Write a crisp Overview section (3-4 sentences max).
+export const faangTemplate = {
+  id: "faang",
+  name: "FAANG-style PRD",
+  description: "Metrics-driven doc for exec/eng review — Overview through Risks.",
+  sections: [
+    {
+      id: "overview",
+      name: "Overview",
+      icon: "🧭",
+      generated: true,
+      prompt: `Write a crisp Overview section (3-4 sentences max).
 
 Include:
 - One sentence: What we're building
@@ -13,12 +18,13 @@ Include:
 - One sentence: Expected business impact
 
 Be specific. No fluff. Every word should matter.`,
-  },
-  {
-    id: "problem",
-    name: "Problem Statement",
-    icon: "🚨",
-    prompt: `Write a compelling Problem Statement.
+    },
+    {
+      id: "problem",
+      name: "Problem Statement",
+      icon: "🚨",
+      generated: true,
+      prompt: `Write a compelling Problem Statement.
 
 Structure:
 1. **The Problem** (2-3 sentences): What's broken? Be specific.
@@ -28,12 +34,13 @@ Structure:
 
 Bad: "Users find it hard to export data"
 Good: "Enterprise users (45% of revenue) cannot export to Excel, causing 3+ support tickets/week and blocking 2 active deals worth $50K ARR"`,
-  },
-  {
-    id: "goals",
-    name: "Goals & Success Metrics",
-    icon: "🎯",
-    prompt: `Write Goals & Success Metrics that an executive would approve.
+    },
+    {
+      id: "goals",
+      name: "Goals & Success Metrics",
+      icon: "🎯",
+      generated: true,
+      prompt: `Write Goals & Success Metrics that an executive would approve.
 
 Structure:
 **Primary Goal**: One sentence, measurable
@@ -50,12 +57,13 @@ Structure:
 Avoid vanity metrics.
 Bad: "Improve user satisfaction"
 Good: "Reduce export-related support tickets from 12/week to <3/week within 30 days"`,
-  },
-  {
-    id: "users",
-    name: "User Stories & Personas",
-    icon: "👥",
-    prompt: `Write User Stories that engineers can build from.
+    },
+    {
+      id: "users",
+      name: "User Stories & Personas",
+      icon: "👥",
+      generated: true,
+      prompt: `Write User Stories that engineers can build from.
 
 **Primary Persona**:
 Name, role, context (1-2 sentences)
@@ -71,12 +79,13 @@ Include 3-5 user stories covering the main use cases.
 
 Bad: "As a user, I want to export data"
 Good: "As a finance analyst, I want to export quarterly data to Excel with formulas preserved, so that I can run my existing pivot table reports without manual reformatting. Acceptance: Excel file opens with formulas working, <30 sec for 100K rows"`,
-  },
-  {
-    id: "solution",
-    name: "Proposed Solution",
-    icon: "💡",
-    prompt: `Write the Proposed Solution section.
+    },
+    {
+      id: "solution",
+      name: "Proposed Solution",
+      icon: "💡",
+      generated: true,
+      prompt: `Write the Proposed Solution section.
 
 Structure:
 **Solution Summary**: 2-3 sentences describing the approach
@@ -95,12 +104,13 @@ Structure:
 Brief description of how this will be built (1-2 sentences)
 
 Be specific about what we're building, not vague aspirations.`,
-  },
-  {
-    id: "requirements",
-    name: "Functional Requirements",
-    icon: "✅",
-    prompt: `Write Functional Requirements that an engineer can build from tomorrow.
+    },
+    {
+      id: "requirements",
+      name: "Functional Requirements",
+      icon: "✅",
+      generated: true,
+      prompt: `Write Functional Requirements that an engineer can build from tomorrow.
 
 **P0 - Must Have** (launch blockers):
 | ID | Requirement | Details | Acceptance Criteria |
@@ -118,12 +128,13 @@ Be specific about what we're building, not vague aspirations.`,
 Be extremely specific. Engineers should not need to ask clarifying questions.
 Bad: "Support large files"
 Good: "Support files up to 1M rows, export completes in <60 seconds, progress indicator shown"`,
-  },
-  {
-    id: "scope",
-    name: "Scope & Timeline",
-    icon: "🗓️",
-    prompt: `Write Scope & Timeline section.
+    },
+    {
+      id: "scope",
+      name: "Scope & Timeline",
+      icon: "🗓️",
+      generated: true,
+      prompt: `Write Scope & Timeline section.
 
 **In Scope** (what we WILL build):
 - [Specific deliverable 1]
@@ -147,12 +158,13 @@ Good: "Support files up to 1M rows, export completes in <60 seconds, progress in
 | Launch | Week 5 | PM |
 
 Be explicit about what's NOT included. This prevents scope creep.`,
-  },
-  {
-    id: "risks",
-    name: "Risks & Mitigations",
-    icon: "⚠️",
-    prompt: `Write Risks & Mitigations like a senior PM who's shipped before.
+    },
+    {
+      id: "risks",
+      name: "Risks & Mitigations",
+      icon: "⚠️",
+      generated: true,
+      prompt: `Write Risks & Mitigations like a senior PM who's shipped before.
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
@@ -166,97 +178,6 @@ Include:
 Be honest about what could go wrong. Leadership respects realism.
 Bad: "There might be technical challenges"
 Good: "Export >500K rows may timeout on current infrastructure. Mitigation: Implement async processing with email notification, already validated approach with Platform team"`,
-  },
-];
-
-export const DATA_INTEGRITY_STRICT = `DATA INTEGRITY RULE (do not break this):
-If the stakeholder input below does not contain a specific number, date, or metric you need,
-do NOT invent one. Write \`[NEEDS INPUT: <what's missing>]\` in its place and move on.
-Never fabricate statistics, dollar amounts, percentages, or dates that were not given or
-clearly implied by the input.`;
-
-export const DATA_INTEGRITY_LOOSE = `DATA INTEGRITY RULE:
-If the stakeholder input below does not contain a specific number, use a clearly-labeled
-reasonable estimate, e.g. "(est.)", so the reader knows it wasn't provided.`;
-
-export function buildSectionPrompt({ featureName, rawInput, section, strictMode }) {
-  return `You are a Senior Product Manager at a top tech company (Google/Stripe/Airbnb level).
-
-You're writing a PRD that will be reviewed by:
-- Engineering leads (who need to estimate and build)
-- Design leads (who need to understand the experience)
-- Executive sponsors (who need to approve resources)
-
-Your PRDs are known for:
-- Crystal clarity (no ambiguity)
-- Specific metrics (real numbers)
-- Actionable requirements (engineers can start tomorrow)
-- Honest risks (no surprises later)
-
-${strictMode ? DATA_INTEGRITY_STRICT : DATA_INTEGRITY_LOOSE}
-
-FEATURE CONTEXT:
-===============
-Feature Name: ${featureName}
-
-Raw Input from Stakeholder:
-${rawInput}
-
-YOUR TASK:
-==========
-Write the "${section.name}" section of this PRD.
-
-${section.prompt}
-
-QUALITY BAR:
-============
-- Every sentence must add value (no filler)
-- Be specific (numbers, names, dates) but only when the input supports it
-- Be honest (include challenges, not just benefits)
-- Be actionable (reader knows exactly what to do next)
-
-Write ONLY the section content. No preamble, no "Here's the section", just the content.`;
-}
-
-export function buildRegeneratePrompt({ featureName, section, previousContent, feedback }) {
-  return `You previously wrote the "${section.name}" section of a PRD for "${featureName}":
-
----
-${previousContent}
----
-
-The author wants this specific change applied: "${feedback}"
-
-Rewrite the section incorporating that feedback. Keep the same structure/format
-conventions (headings, tables, lists) as the original. Output ONLY the revised
-section content, no preamble.`;
-}
-
-export function buildPrdContent(name, sectionsContent) {
-  const lines = [`# PRD: ${name}`, "", "---", ""];
-  for (const section of SECTIONS) {
-    const content = sectionsContent[section.id];
-    if (content) {
-      lines.push(`## ${section.name}`, "", content, "");
-    }
-  }
-  return lines.join("\n");
-}
-
-export function parseSectionsFromContent(content) {
-  const parsed = {};
-  for (const section of SECTIONS) {
-    const marker = `## ${section.name}`;
-    const start = content.indexOf(marker);
-    if (start === -1) continue;
-    const from = start + marker.length;
-    let end = content.length;
-    for (const next of SECTIONS) {
-      const nextMarker = `## ${next.name}`;
-      const idx = content.indexOf(nextMarker, from);
-      if (idx !== -1 && idx < end) end = idx;
-    }
-    parsed[section.id] = content.slice(from, end).trim();
-  }
-  return parsed;
-}
+    },
+  ],
+};

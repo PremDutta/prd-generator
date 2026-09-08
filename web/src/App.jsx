@@ -10,7 +10,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <main className="mx-auto max-w-6xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-6 py-8">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/new" element={<NewPrd />} />
