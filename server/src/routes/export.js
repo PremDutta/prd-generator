@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as store from "../storage.js";
-import { toMarkdown, toHtml, toDocx } from "../exporters.js";
+import { toMarkdown, toHtml, toDocx, toPdf } from "../exporters.js";
 
 const router = Router();
 
@@ -20,6 +20,14 @@ router.get("/:id/export/:format", async (req, res) => {
     const buffer = await toDocx(prd);
     res.setHeader("Content-Disposition", `attachment; filename="${filename}.docx"`);
     res.type("application/vnd.openxmlformats-officedocument.wordprocessingml.document").send(buffer);
+  } else if (req.params.format === "pdf") {
+    try {
+      const buffer = await toPdf(prd);
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}.pdf"`);
+      res.type("application/pdf").send(buffer);
+    } catch (err) {
+      res.status(500).json({ error: `PDF export failed: ${err.message || err}` });
+    }
   } else {
     res.status(400).json({ error: "Unknown export format" });
   }

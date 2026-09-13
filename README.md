@@ -35,7 +35,7 @@ actually say ends up looking like a fact in a doc your team will act on.
 - **Status, tags, search, filter, duplicate** for managing a library of PRDs,
   with gap-count and template badges at a glance
 - **Real shareable links**, backed by the server (not a fragile base64 URL)
-- **Export** to Markdown, HTML, or Word
+- **Export** to Markdown, HTML, Word, or PDF (server-rendered via headless Chrome)
 - **Rendered markdown in the viewer** — tables, checklists, and bold render
   properly, not as raw `| pipe |` / `- [ ]` / `**asterisk**` syntax
 
@@ -50,6 +50,7 @@ actually say ends up looking like a fact in a doc your team will act on.
 | AI | [Anthropic Claude](https://console.anthropic.com) (Sonnet 5 / Opus 5) and/or [Groq](https://console.groq.com) (`openai/gpt-oss-120b` / `20b`) — configure either or both |
 | Storage | Flat-file JSON (single-user, local-first by design) |
 | Word export | [`docx`](https://www.npmjs.com/package/docx) |
+| PDF export | [`puppeteer`](https://www.npmjs.com/package/puppeteer) (headless Chrome, renders the HTML export) |
 
 ## Project structure
 
@@ -61,7 +62,7 @@ prd-generator/
 │       ├── templates/     Template definitions (faang.js, alignment.js) + shared prompt helpers
 │       ├── providers.js   Multi-provider AI client (Anthropic + Groq) with retries + friendly errors
 │       ├── storage.js     Flat-file JSON persistence + per-section version history / changelog
-│       ├── exporters.js   Markdown/HTML/Word generation
+│       ├── exporters.js   Markdown/HTML/Word/PDF generation
 │       └── static.js      Serves web/dist in production (single-service deploy)
 ├── web/                 React (Vite) frontend
 │   └── src/
@@ -128,7 +129,11 @@ deploys as **one service with one URL**.
 ~30-50s on the next visit), and the flat-file storage lives on ephemeral disk,
 so the PRD library isn't guaranteed to survive a redeploy. Fine for sharing a
 demo link; swap in Postgres (Render has a free tier) if you need PRDs to
-persist permanently.
+persist permanently. PDF export launches a full headless Chrome via
+Puppeteer, which needs more memory than Render's free 512MB instance
+comfortably offers — it works locally without issue, but on Render's free
+tier expect it to be slow or to fail under memory pressure; a paid instance
+size resolves this.
 
 ## API overview
 
@@ -142,7 +147,7 @@ persist permanently.
 | `DELETE` | `/api/prds/:id` | Delete a PRD |
 | `POST` | `/api/prds/generate` | Generate a new PRD (streamed NDJSON progress) |
 | `POST` | `/api/prds/:id/sections/:sectionId/regenerate` | Preview a refined section (does not persist — accept via `PATCH`) |
-| `GET` | `/api/prds/:id/export/:format` | Export as `markdown` / `html` / `docx` |
+| `GET` | `/api/prds/:id/export/:format` | Export as `markdown` / `html` / `docx` / `pdf` |
 | `POST` | `/api/prds/:id/share` | Create/get a share link |
 | `GET` | `/api/shared/:shareId` | Read a shared PRD (public) |
 | `POST` | `/api/shared/:shareId/import` | Import a shared PRD into your library |
@@ -153,8 +158,6 @@ persist permanently.
   for one PM's personal tool; would need a real database + auth for a team.
   The reviewer sign-off table is a manually-tracked checklist, not a real
   approval workflow with per-user accounts.
-- No PDF export (HTML export prints cleanly to PDF from a browser in the
-  meantime).
 - No integrations yet (Jira/Linear ticket sync, Slack digest, Notion export,
   voice input via Whisper) — all natural next steps but need your own
   workspace credentials to wire up.

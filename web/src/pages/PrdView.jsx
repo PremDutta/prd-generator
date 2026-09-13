@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, TriangleAlert, FileText, Globe, FileType, Link2, SquarePen } from "lucide-react";
+import { ArrowLeft, TriangleAlert, FileText, Globe, FileType, FileDown, Link2, SquarePen } from "lucide-react";
 import { api } from "../api.js";
 import { parseSections, buildContent } from "../prdContent.js";
 import { findGaps } from "../gaps.js";
@@ -218,11 +218,12 @@ export default function PrdView() {
           <div className="card p-4">
             <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Export &amp; share</p>
             <div className="grid grid-cols-2 gap-2">
+              <a className="btn-secondary justify-start gap-1.5 text-xs" href={api.exportUrl(prd.id, "pdf")}><FileDown size={13} /> PDF</a>
               <a className="btn-secondary justify-start gap-1.5 text-xs" href={api.exportUrl(prd.id, "markdown")}><FileText size={13} /> Markdown</a>
               <a className="btn-secondary justify-start gap-1.5 text-xs" href={api.exportUrl(prd.id, "html")}><Globe size={13} /> HTML</a>
               <a className="btn-secondary justify-start gap-1.5 text-xs" href={api.exportUrl(prd.id, "docx")}><FileType size={13} /> Word</a>
-              <button className="btn-secondary justify-start gap-1.5 text-xs" onClick={share}><Link2 size={13} /> Share</button>
             </div>
+            <button className="btn-secondary mt-2 w-full justify-start gap-1.5 text-xs" onClick={share}><Link2 size={13} /> Share</button>
             {shareLink && (
               <div className="mt-3 rounded-lg border border-brand-200 bg-brand-50 p-2.5 text-xs">
                 <code className="break-all text-brand-700">{shareLink}</code>

@@ -10,3 +10,5 @@ services:
         value: 20.18.0
       - key: GROQ_API_KEY
         sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
