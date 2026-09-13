@@ -19,6 +19,12 @@ export function parseSections(content, sections) {
   return parsed;
 }
 
+// Drops the leading "# PRD: <name>" title (and the rule under it) so a view
+// that already shows the title in its own heading doesn't render it twice.
+export function stripDocTitle(content) {
+  return (content || "").replace(/^\s*#\s+.*\n+(---\s*\n+)?/, "");
+}
+
 export function buildContent(name, sectionsContent, sections) {
   const lines = [`# PRD: ${name}`, "", "---", ""];
   for (const section of sections) {

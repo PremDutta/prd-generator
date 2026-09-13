@@ -1,10 +1,28 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { Sparkles, FileStack, CalendarPlus, CircleCheckBig, PenLine, Wand2, ShieldCheck } from "lucide-react";
 import { api } from "../api.js";
 import Stat from "../components/Stat.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
 import { StatSkeleton, PrdCardSkeleton } from "../components/Skeleton.jsx";
+
+const STEPS = [
+  {
+    icon: PenLine,
+    title: "Paste your notes",
+    body: "Whatever you have — a Slack thread, bullet points, a half-formed idea. No structure required.",
+  },
+  {
+    icon: Wand2,
+    title: "Generate section by section",
+    body: "Pick a template and a model. Each section is written to a senior-PM brief, streamed as it lands.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Close the gaps, then share",
+    body: "Anything the AI couldn't ground in your input is flagged, not invented. Refine, export, share a link.",
+  },
+];
 
 export default function Home() {
   const [prds, setPrds] = useState([]);
@@ -19,7 +37,7 @@ export default function Home() {
   const approved = prds.filter((p) => p.status === "Approved").length;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <section className="mb-14 text-center">
         <h1 className="text-5xl font-normal tracking-tight text-slate-900 sm:text-6xl">
           PRDs that read like a <span className="text-brand-600">Senior PM</span> wrote them
@@ -43,14 +61,14 @@ export default function Home() {
           </>
         ) : (
           <>
-            <Stat value={prds.length} label="Total PRDs" />
-            <Stat value={thisWeek} label="Created this week" />
-            <Stat value={approved} label="Approved" />
+            <Stat value={prds.length} label="Total PRDs" icon={FileStack} />
+            <Stat value={thisWeek} label="Created this week" icon={CalendarPlus} />
+            <Stat value={approved} label="Approved" icon={CircleCheckBig} />
           </>
         )}
       </section>
 
-      <section>
+      <section className="mb-14">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold tracking-tight text-slate-900">Recent PRDs</h2>
           <Link to="/library" className="text-sm font-medium text-brand-600 hover:text-brand-700">
@@ -60,7 +78,6 @@ export default function Home() {
 
         {loading ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <PrdCardSkeleton />
             <PrdCardSkeleton />
             <PrdCardSkeleton />
             <PrdCardSkeleton />
@@ -82,6 +99,24 @@ export default function Home() {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="border-t border-slate-200/70 pt-12">
+        <h2 className="text-center text-lg font-semibold tracking-tight text-slate-900">How it works</h2>
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {STEPS.map((step, i) => (
+            <div key={step.title}>
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-brand-50 text-brand-600">
+                  <step.icon size={17} />
+                </div>
+                <span className="font-mono text-xs text-slate-400">0{i + 1}</span>
+              </div>
+              <h3 className="font-medium text-slate-900">{step.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{step.body}</p>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );

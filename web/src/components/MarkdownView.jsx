@@ -2,16 +2,36 @@
 // headers, **bold**/*italic*, "- " bullet lists, "|"-tables, and "---" rules.
 // Editing still works on the raw markdown string; this is read-view only.
 
+// Strict Mode's "[NEEDS INPUT: ...]" markers are rendered as a chip rather than
+// raw text, so a reader reads them as a deliberate open question instead of a
+// sloppy placeholder. Matched before bold/italic so a bolded marker still chips.
+const GAP_PATTERN = "\\[NEEDS INPUT:[^\\]]+\\]";
+
+function gapChip(text, key) {
+  return (
+    <mark key={key} className="rounded bg-amber-100/70 px-1.5 py-0.5 text-[0.95em] font-medium text-amber-800">
+      {text.replace(/^\[NEEDS INPUT:\s*/, "").replace(/\]$/, "")}
+    </mark>
+  );
+}
+
 function inline(text, keyPrefix) {
-  const parts = text.split(/(\*\*.+?\*\*|\*[^*\s].*?\*)/g);
+  const parts = text.split(new RegExp(`(${GAP_PATTERN}|\\*\\*.+?\\*\\*|\\*[^*\\s].*?\\*)`, "g"));
   return parts.map((part, i) => {
+    const key = `${keyPrefix}-${i}`;
+    if (/^\[NEEDS INPUT:/.test(part)) {
+      return gapChip(part, key);
+    }
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${keyPrefix}-${i}`}>{part.slice(2, -2)}</strong>;
+      const body = part.slice(2, -2);
+      // A marker wrapped in bold: keep the chip, drop the redundant emphasis.
+      if (/^\[NEEDS INPUT:[^\]]+\]$/.test(body)) return gapChip(body, key);
+      return <strong key={key}>{body}</strong>;
     }
     if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={`${keyPrefix}-${i}`}>{part.slice(1, -1)}</em>;
+      return <em key={key}>{part.slice(1, -1)}</em>;
     }
-    return <span key={`${keyPrefix}-${i}`}>{part}</span>;
+    return <span key={key}>{part}</span>;
   });
 }
 
@@ -109,7 +129,7 @@ export default function MarkdownView({ content }) {
 
     if (!line) return;
     if (line.startsWith("### ")) nodes.push(<h4 key={idx} className="mb-1 mt-4 text-sm font-semibold tracking-tight text-slate-900">{line.slice(4)}</h4>);
-    else if (line.startsWith("## ")) nodes.push(<h3 key={idx} className="mb-1.5 mt-5 text-base font-bold tracking-tight text-slate-900">{line.slice(3)}</h3>);
+    else if (line.startsWith("## ")) nodes.push(<h3 key={idx} className="mb-2.5 mt-8 border-b border-slate-200/70 pb-1.5 text-lg font-semibold tracking-tight text-slate-900 first:mt-0">{line.slice(3)}</h3>);
     else if (line.startsWith("# ")) nodes.push(<h2 key={idx} className="mb-1.5 mt-5 text-lg font-bold tracking-tight text-slate-900">{line.slice(2)}</h2>);
     else if (line === "---") nodes.push(<hr key={idx} className="my-4 border-slate-100" />);
     else nodes.push(<p key={idx} className="my-1.5 leading-relaxed text-slate-600">{inline(line, `p-${idx}`)}</p>);
