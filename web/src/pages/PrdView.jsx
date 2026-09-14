@@ -269,8 +269,19 @@ export default function PrdView() {
             </div>
             <button className="btn-secondary mt-2 w-full justify-start gap-1.5 text-xs" onClick={share}><Link2 size={13} /> Share</button>
             {shareLink && (
-              <div className="mt-3 rounded-lg border border-brand-200 bg-brand-50 p-2.5 text-xs">
-                <code className="break-all text-brand-700">{shareLink}</code>
+              <div className="mt-3 space-y-2.5 rounded-lg border border-brand-200 bg-brand-50 p-2.5 text-xs">
+                <code className="block break-all text-brand-700">{shareLink}</code>
+                <label className="flex items-center gap-2 text-brand-700">
+                  <input
+                    type="checkbox"
+                    checked={prd.commentsEnabled !== false}
+                    onChange={async (e) => {
+                      const updated = await api.updatePrd(prd.id, { commentsEnabled: e.target.checked });
+                      setPrd(updated);
+                    }}
+                  />
+                  Let people with this link comment
+                </label>
               </div>
             )}
           </div>

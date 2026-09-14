@@ -74,7 +74,7 @@ export default function Shared() {
     <div className="mx-auto max-w-3xl animate-fade-in">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
-          <Eye size={12} /> Shared with you &middot; comments welcome
+          <Eye size={12} /> Shared with you &middot; {prd.commentsEnabled ? "comments welcome" : "read-only"}
         </span>
         <div className="flex items-center gap-2">
           <button className="btn-secondary gap-1.5 text-xs" onClick={copyMarkdown}>
@@ -109,8 +109,9 @@ export default function Shared() {
                 <div className="mt-4 border-t border-slate-100 pt-3">
                   <SectionComments
                     comments={(prd.comments && prd.comments[section.id]) || []}
-                    onAdd={({ body, author }) => addComment(section.id, body, author)}
+                    onAdd={prd.commentsEnabled ? ({ body, author }) => addComment(section.id, body, author) : null}
                     askAuthor
+                    readOnly={!prd.commentsEnabled}
                   />
                 </div>
               </div>

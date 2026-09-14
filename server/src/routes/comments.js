@@ -34,6 +34,30 @@ function validate(req, res) {
   return true;
 }
 
+// The public endpoint takes writes from anyone holding a link, so it gets a
+// simple in-process throttle. Not a substitute for auth — it just stops a
+// shared link being trivially flooded. Resets on restart, which is fine for a
+// single-instance app.
+const RATE_LIMIT = { max: 10, windowMs: 60_000 };
+const hits = new Map();
+
+function rateLimited(key) {
+  const now = Date.now();
+  const recent = (hits.get(key) || []).filter((t) => now - t < RATE_LIMIT.windowMs);
+  if (recent.length >= RATE_LIMIT.max) {
+    hits.set(key, recent);
+    return true;
+  }
+  recent.push(now);
+  hits.set(key, recent);
+  if (hits.size > 500) {
+    for (const [k, times] of hits) {
+      if (!times.some((t) => now - t < RATE_LIMIT.windowMs)) hits.delete(k);
+    }
+  }
+  return false;
+}
+
 prdsRouter.post("/:id/comments", (req, res) => {
   const prd = store.getById(req.params.id);
   if (!prd) return res.status(404).json({ error: "PRD not found" });
@@ -74,10 +98,17 @@ prdsRouter.delete("/:id/comments/:commentId", (req, res) => {
   res.json({ comments: updated.comments });
 });
 
-// Public: a reviewer with the link can comment without an account.
+// Public: a reviewer with the link can comment without an account. The owner
+// can switch this off per PRD if a link travels further than intended.
 sharedRouter.post("/:shareId/comments", (req, res) => {
   const prd = store.getByShareId(req.params.shareId);
   if (!prd) return res.status(404).json({ error: "Shared PRD not found" });
+  if (prd.commentsEnabled === false) {
+    return res.status(403).json({ error: "Comments are turned off for this link." });
+  }
+  if (rateLimited(`${req.ip}:${req.params.shareId}`)) {
+    return res.status(429).json({ error: "Too many comments in a short time. Wait a minute and try again." });
+  }
   if (!validate(req, res)) return;
   const updated = addComment(prd, req.body);
   res.json({ comments: updated.comments });

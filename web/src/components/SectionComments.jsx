@@ -12,7 +12,7 @@ function timeAgo(iso) {
 
 // Shared by the owner's section cards and the public share view. `askAuthor` is
 // on for reviewers arriving via a share link, who have no account to identify them.
-export default function SectionComments({ comments = [], onAdd, onToggle, onDelete, askAuthor = false }) {
+export default function SectionComments({ comments = [], onAdd, onToggle, onDelete, askAuthor = false, readOnly = false }) {
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState("");
   const [author, setAuthor] = useState(() => localStorage.getItem("prd-reviewer-name") || "");
@@ -94,6 +94,10 @@ export default function SectionComments({ comments = [], onAdd, onToggle, onDele
             </div>
           ))}
 
+          {readOnly ? (
+            <p className="text-xs text-slate-400">Commenting is turned off for this link.</p>
+          ) : (
+          <>
           {askAuthor && (
             <input
               className="input text-sm"
@@ -115,6 +119,8 @@ export default function SectionComments({ comments = [], onAdd, onToggle, onDele
           <button className="btn-primary gap-1.5 text-xs" disabled={!body.trim() || busy} onClick={submit}>
             <CornerDownLeft size={13} /> {busy ? "Posting..." : "Comment"}
           </button>
+          </>
+          )}
         </div>
       )}
     </div>

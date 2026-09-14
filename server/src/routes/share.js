@@ -24,6 +24,7 @@ sharedRouter.get("/:shareId", (req, res) => {
     templateId: prd.templateId,
     meta: prd.meta,
     comments: prd.comments || {},
+    commentsEnabled: prd.commentsEnabled !== false,
   });
 });
 
