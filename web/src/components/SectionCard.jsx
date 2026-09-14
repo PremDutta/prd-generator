@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { History, SquarePen, RefreshCw, CircleCheckBig } from "lucide-react";
 import MarkdownView from "./MarkdownView.jsx";
+import SectionComments from "./SectionComments.jsx";
 import { SkeletonText } from "./Skeleton.jsx";
 import { sectionIcon } from "../icons.js";
 
@@ -8,7 +9,18 @@ function wordCount(text) {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
 
-export default function SectionCard({ section, content, history, onSave, onRegeneratePreview }) {
+export default function SectionCard({
+  section,
+  content,
+  history,
+  onSave,
+  onRegeneratePreview,
+  onFillGap,
+  comments = [],
+  onAddComment,
+  onToggleComment,
+  onDeleteComment,
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(content);
   const [feedback, setFeedback] = useState("");
@@ -74,7 +86,7 @@ export default function SectionCard({ section, content, history, onSave, onRegen
                 <History size={13} /> History ({history.length})
               </button>
               {showHistory && (
-                <div className="absolute right-0 z-10 mt-1.5 w-64 animate-fade-in rounded-xl border border-slate-200 bg-white p-1.5 shadow-elevated">
+                <div className="absolute right-0 z-10 mt-1.5 w-64 animate-fade-in rounded-xl border border-slate-200 bg-surface p-1.5 shadow-elevated">
                   {history
                     .slice()
                     .reverse()
@@ -118,7 +130,7 @@ export default function SectionCard({ section, content, history, onSave, onRegen
           </div>
         </div>
       ) : (
-        <MarkdownView content={content} />
+        <MarkdownView content={content} onFillGap={onFillGap} />
       )}
 
       {refining && (
@@ -133,13 +145,13 @@ export default function SectionCard({ section, content, history, onSave, onRegen
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <p className="mb-1 text-xs font-medium text-slate-500">Current</p>
-              <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2.5 shadow-xs">
+              <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-surface p-2.5 shadow-xs">
                 <MarkdownView content={content} />
               </div>
             </div>
             <div>
               <p className="mb-1 text-xs font-medium text-slate-500">Proposed</p>
-              <div className="max-h-64 overflow-y-auto rounded-lg bg-white p-2.5 shadow-xs ring-1 ring-inset ring-brand-200">
+              <div className="max-h-64 overflow-y-auto rounded-lg bg-surface p-2.5 shadow-xs ring-1 ring-inset ring-brand-200">
                 <MarkdownView content={preview} />
               </div>
             </div>
@@ -152,6 +164,14 @@ export default function SectionCard({ section, content, history, onSave, onRegen
       )}
 
       <div className="mt-4 border-t border-slate-100 pt-3">
+        <div className="mb-3">
+          <SectionComments
+            comments={comments}
+            onAdd={({ body, author }) => onAddComment(section.id, body, author)}
+            onToggle={onToggleComment}
+            onDelete={onDeleteComment}
+          />
+        </div>
         {showRefine ? (
           <div className="space-y-2">
             <input

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Rocket, Check } from "lucide-react";
+import { Sparkles, Rocket, Check, MessageCircleQuestion, RefreshCw } from "lucide-react";
 import { api } from "../api.js";
 import { STATUSES } from "../constants.js";
 
@@ -23,6 +23,9 @@ export default function NewPrd() {
   const [generating, setGenerating] = useState(false);
   const [steps, setSteps] = useState([]);
   const [error, setError] = useState("");
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [asking, setAsking] = useState(false);
 
   useEffect(() => {
     api.getConfig().then((cfg) => {
@@ -31,6 +34,24 @@ export default function NewPrd() {
       setTemplates(cfg.templates);
     });
   }, []);
+
+  const askQuestions = async () => {
+    if (!name.trim() || !rawInput.trim()) {
+      setError("Add a PRD name and some notes first, so the questions can be specific.");
+      return;
+    }
+    setError("");
+    setAsking(true);
+    try {
+      const { questions: qs } = await api.clarify({ name: name.trim(), rawInput: rawInput.trim(), templateId, model });
+      if (!qs.length) setError("Couldn't come up with questions — your notes may already be detailed enough.");
+      setQuestions(qs);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setAsking(false);
+    }
+  };
 
   const generate = async () => {
     if (!name.trim() || !rawInput.trim()) {
@@ -55,6 +76,9 @@ export default function NewPrd() {
           strictMode,
           model,
           templateId,
+          answers: questions
+            .filter((q) => answers[q.id]?.trim())
+            .map((q) => ({ question: q.question, answer: answers[q.id] })),
           meta: {
             oneLiner: oneLiner.trim(),
             team: team.trim(),
@@ -179,10 +203,52 @@ export default function NewPrd() {
           </select>
         </div>
 
+        {/* Answering these up front means the draft starts with real numbers
+            instead of placeholders to backfill afterwards. */}
+        <div className="rounded-xl border border-slate-200 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="flex items-center gap-1.5 text-sm font-medium text-slate-900">
+                <MessageCircleQuestion size={15} className="text-brand-600" /> Answer a few questions first
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                Optional, but it's the difference between a draft full of gaps and one you can send.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn-secondary shrink-0 gap-1.5 text-xs"
+              onClick={askQuestions}
+              disabled={asking || generating}
+            >
+              <RefreshCw size={13} className={asking ? "animate-spin" : ""} />
+              {asking ? "Thinking..." : questions.length ? "New questions" : "Ask me"}
+            </button>
+          </div>
+
+          {questions.length > 0 && (
+            <div className="mt-4 animate-fade-in space-y-3">
+              {questions.map((q) => (
+                <div key={q.id}>
+                  <label className="block text-sm text-slate-700">{q.question}</label>
+                  {q.why && <p className="mt-0.5 text-xs text-slate-400">{q.why}</p>}
+                  <input
+                    className="input mt-1.5 text-sm"
+                    placeholder="Your answer (leave blank to skip)"
+                    value={answers[q.id] || ""}
+                    disabled={generating}
+                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {generating && (
-          <div className="animate-fade-in rounded-xl border border-slate-200 bg-white p-4">
+          <div className="animate-fade-in rounded-xl border border-slate-200 bg-surface p-4">
             {templateList.length > 0 && (
               <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                 <div

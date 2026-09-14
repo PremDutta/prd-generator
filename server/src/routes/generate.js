@@ -2,24 +2,70 @@ import { Router } from "express";
 import * as store from "../storage.js";
 import { generate, availableModels, defaultModelKey } from "../providers.js";
 import { getTemplate } from "../templates/index.js";
-import { buildSectionPrompt, buildRegeneratePrompt, buildPrdContent } from "../templates/index.js";
+import {
+  buildSectionPrompt,
+  buildRegeneratePrompt,
+  buildPrdContent,
+  buildClarifyPrompt,
+  parseClarifyResponse,
+} from "../templates/index.js";
 
 const router = Router();
 
+function resolveModel(model) {
+  const modelKey = model || defaultModelKey();
+  if (!modelKey || !availableModels()[modelKey]) return null;
+  return modelKey;
+}
+
+const NO_PROVIDER = "No AI provider configured. Set GROQ_API_KEY or ANTHROPIC_API_KEY in server/.env.";
+
+// Asks the author a few targeted questions up front so generation starts with
+// real numbers rather than emitting placeholders to be backfilled later.
+router.post("/clarify", async (req, res) => {
+  const { name, rawInput, templateId, model } = req.body;
+  if (!name?.trim() || !rawInput?.trim()) {
+    return res.status(400).json({ error: "name and rawInput are required" });
+  }
+
+  const modelKey = resolveModel(model);
+  if (!modelKey) return res.status(400).json({ error: NO_PROVIDER });
+
+  const template = getTemplate(templateId);
+  try {
+    const prompt = buildClarifyPrompt({
+      featureName: name.trim(),
+      rawInput: rawInput.trim(),
+      sectionNames: template.sections.filter((s) => s.generated !== false).map((s) => s.name),
+    });
+    const questions = parseClarifyResponse(await generate(prompt, modelKey));
+    res.json({ questions });
+  } catch (err) {
+    res.status(500).json({ error: err.message || String(err) });
+  }
+});
+
 // Streamed as newline-delimited JSON so the UI can show live per-section progress.
 router.post("/generate", async (req, res) => {
-  const { name, rawInput, status, tags, strictMode, model, templateId, meta } = req.body;
+  const { name, rawInput, status, tags, strictMode, model, templateId, meta, answers } = req.body;
 
   if (!name?.trim() || !rawInput?.trim()) {
     return res.status(400).json({ error: "name and rawInput are required" });
   }
 
-  const modelKey = model || defaultModelKey();
-  if (!modelKey || !availableModels()[modelKey]) {
-    return res.status(400).json({ error: "No AI provider configured. Set GROQ_API_KEY or ANTHROPIC_API_KEY in server/.env." });
-  }
+  const modelKey = resolveModel(model);
+  if (!modelKey) return res.status(400).json({ error: NO_PROVIDER });
 
   const template = getTemplate(templateId);
+
+  // Answers to the clarifying questions are folded into the notes so every
+  // section prompt sees them as stakeholder-provided fact, not a separate hint.
+  const answered = (answers || []).filter((a) => a?.question && a?.answer?.trim());
+  const effectiveInput = answered.length
+    ? `${rawInput.trim()}\n\nAdditional details provided by the author:\n${answered
+        .map((a) => `- ${a.question} ${a.answer.trim()}`)
+        .join("\n")}`
+    : rawInput.trim();
 
   res.setHeader("Content-Type", "application/x-ndjson");
   res.setHeader("Cache-Control", "no-cache");
@@ -30,7 +76,7 @@ router.post("/generate", async (req, res) => {
     for (const section of template.sections) {
       send({ type: "progress", sectionId: section.id, sectionName: section.name, state: "working" });
       if (section.generated) {
-        const prompt = buildSectionPrompt({ featureName: name.trim(), rawInput: rawInput.trim(), section, strictMode });
+        const prompt = buildSectionPrompt({ featureName: name.trim(), rawInput: effectiveInput, section, strictMode });
         sectionsContent[section.id] = await generate(prompt, modelKey);
       } else {
         sectionsContent[section.id] = section.seed;
@@ -40,7 +86,7 @@ router.post("/generate", async (req, res) => {
 
     const prd = store.create({
       name: name.trim(),
-      rawInput: rawInput.trim(),
+      rawInput: effectiveInput,
       status: status || "Draft",
       tags: tags || [],
       templateId: template.id,
@@ -70,10 +116,8 @@ router.post("/:id/sections/:sectionId/regenerate", async (req, res) => {
   const { feedback, previousContent, model } = req.body;
   if (!feedback?.trim()) return res.status(400).json({ error: "feedback is required" });
 
-  const modelKey = model || defaultModelKey();
-  if (!modelKey || !availableModels()[modelKey]) {
-    return res.status(400).json({ error: "No AI provider configured. Set GROQ_API_KEY or ANTHROPIC_API_KEY in server/.env." });
-  }
+  const modelKey = resolveModel(model);
+  if (!modelKey) return res.status(400).json({ error: NO_PROVIDER });
 
   try {
     const prompt = buildRegeneratePrompt({

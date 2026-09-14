@@ -1,37 +1,32 @@
 /** @type {import('tailwindcss').Config} */
+// Every palette entry resolves through a CSS variable (see styles.css), so the
+// dark theme is a variable swap on <html class="dark"> rather than a `dark:`
+// variant on each of the ~160 colour utilities scattered through the app.
+const v = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
+
+const scale = (prefix, shades) =>
+  Object.fromEntries(shades.map((s) => [s, v(`${prefix}-${s}`)]));
+
+const NEUTRAL_SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+const ACCENT_SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+
 export default {
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
-        brand: {
-          25: "#f7f8ff",
-          50: "#eef2ff",
-          100: "#e0e7ff",
-          200: "#c7d2fe",
-          300: "#a5b4fc",
-          400: "#818cf8",
-          500: "#6366f1",
-          600: "#4f46e5",
-          700: "#4338ca",
-          800: "#3730a3",
-          900: "#312e81",
-        },
-        // Overridden to match a warmer, quieter neutral scale (fanout.sh-style)
-        // instead of Tailwind's cooler default slate — this cascades through
-        // every existing slate-* utility class in the app.
-        slate: {
-          50: "#f7f7f8",
-          100: "#f0f0f1",
-          200: "#e8e8ea",
-          300: "#d4d4d6",
-          400: "#a0a0a3",
-          500: "#6e6e6e",
-          600: "#4b4b4d",
-          700: "#383838",
-          800: "#2f2f2f",
-          900: "#272727",
-        },
+        // Card/menu background. Was a literal `white`, which can't flip.
+        surface: v("surface"),
+        brand: { 25: v("brand-25"), ...scale("brand", NEUTRAL_SHADES) },
+        // A warmer, quieter neutral than Tailwind's default slate; overriding
+        // the name cascades through every existing slate-* class in the app.
+        slate: scale("slate", NEUTRAL_SHADES),
+        amber: scale("amber", ACCENT_SHADES),
+        emerald: scale("emerald", ACCENT_SHADES),
+        red: scale("red", ACCENT_SHADES),
+        lime: scale("lime", ACCENT_SHADES),
+        orange: scale("orange", ACCENT_SHADES),
       },
       fontFamily: {
         sans: ["Overused Grotesk", "-apple-system", "BlinkMacSystemFont", "sans-serif"],

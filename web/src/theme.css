@@ -1,0 +1,168 @@
+/* Palette source of truth. Tailwind's colour scales point at these variables
+   (see tailwind.config.js), so the dark theme is a variable swap rather than a
+   `dark:` variant on every utility class.
+
+   Values are space-separated RGB channels so Tailwind's `<alpha-value>` slot
+   still works (e.g. bg-amber-100/70). */
+
+:root {
+  --c-surface: 255 255 255;
+
+  --c-slate-50: 247 247 248;
+  --c-slate-100: 240 240 241;
+  --c-slate-200: 232 232 234;
+  --c-slate-300: 212 212 214;
+  --c-slate-400: 160 160 163;
+  --c-slate-500: 110 110 110;
+  --c-slate-600: 75 75 77;
+  --c-slate-700: 56 56 56;
+  --c-slate-800: 47 47 47;
+  --c-slate-900: 39 39 39;
+
+  --c-brand-25: 247 248 255;
+  --c-brand-50: 238 242 255;
+  --c-brand-100: 224 231 255;
+  --c-brand-200: 199 210 254;
+  --c-brand-300: 165 180 252;
+  --c-brand-400: 129 140 248;
+  --c-brand-500: 99 102 241;
+  --c-brand-600: 79 70 229;
+  --c-brand-700: 67 56 202;
+  --c-brand-800: 55 48 163;
+  --c-brand-900: 49 46 129;
+
+  --c-amber-50: 255 251 235;
+  --c-amber-100: 254 243 199;
+  --c-amber-200: 253 230 138;
+  --c-amber-300: 252 211 77;
+  --c-amber-400: 251 191 36;
+  --c-amber-500: 245 158 11;
+  --c-amber-600: 217 119 6;
+  --c-amber-700: 180 83 9;
+  --c-amber-800: 146 64 14;
+  --c-amber-900: 120 53 15;
+
+  --c-emerald-50: 236 253 245;
+  --c-emerald-100: 209 250 229;
+  --c-emerald-200: 167 243 208;
+  --c-emerald-300: 110 231 183;
+  --c-emerald-400: 52 211 153;
+  --c-emerald-500: 16 185 129;
+  --c-emerald-600: 5 150 105;
+  --c-emerald-700: 4 120 87;
+  --c-emerald-800: 6 95 70;
+  --c-emerald-900: 6 78 59;
+
+  --c-red-50: 254 242 242;
+  --c-red-100: 254 226 226;
+  --c-red-200: 254 202 202;
+  --c-red-300: 252 165 165;
+  --c-red-400: 248 113 113;
+  --c-red-500: 239 68 68;
+  --c-red-600: 220 38 38;
+  --c-red-700: 185 28 28;
+  --c-red-800: 153 27 27;
+  --c-red-900: 127 29 29;
+
+  --c-lime-50: 247 254 231;
+  --c-lime-100: 236 252 203;
+  --c-lime-200: 217 249 157;
+  --c-lime-300: 190 242 100;
+  --c-lime-400: 163 230 53;
+  --c-lime-500: 132 204 22;
+  --c-lime-600: 101 163 13;
+  --c-lime-700: 77 124 15;
+  --c-lime-800: 63 98 18;
+  --c-lime-900: 54 83 20;
+
+  --c-orange-50: 255 247 237;
+  --c-orange-100: 255 237 213;
+  --c-orange-200: 254 215 170;
+  --c-orange-300: 253 186 116;
+  --c-orange-400: 251 146 60;
+  --c-orange-500: 249 115 22;
+  --c-orange-600: 234 88 12;
+  --c-orange-700: 194 65 12;
+  --c-orange-800: 154 52 18;
+  --c-orange-900: 124 45 18;
+}
+
+/* Dark: the neutral ramp is inverted (50 = darkest page ground, 900 = brightest
+   text), and each accent's light "background" shades become deep tints while its
+   dark "text" shades become bright — so the light/dark role of every existing
+   class is preserved without changing the class itself. */
+.dark {
+  --c-surface: 32 32 35;
+
+  --c-slate-50: 24 24 26;
+  --c-slate-100: 38 38 42;
+  --c-slate-200: 52 52 57;
+  --c-slate-300: 72 72 78;
+  --c-slate-400: 138 138 145;
+  --c-slate-500: 163 163 170;
+  --c-slate-600: 196 196 202;
+  --c-slate-700: 217 217 222;
+  --c-slate-800: 235 235 239;
+  --c-slate-900: 245 245 247;
+
+  --c-brand-25: 32 33 46;
+  --c-brand-50: 40 41 61;
+  --c-brand-100: 52 53 82;
+  --c-brand-200: 76 78 118;
+  --c-brand-300: 129 140 248;
+  --c-brand-400: 150 159 250;
+  --c-brand-500: 129 140 248;
+  --c-brand-600: 111 120 245;
+  --c-brand-700: 140 148 250;
+
+  --c-amber-50: 47 38 20;
+  --c-amber-100: 66 51 22;
+  --c-amber-200: 92 69 25;
+  --c-amber-300: 191 141 45;
+  --c-amber-400: 245 180 60;
+  --c-amber-500: 251 191 36;
+  --c-amber-600: 252 211 77;
+  --c-amber-700: 253 224 130;
+  --c-amber-800: 253 230 160;
+  --c-amber-900: 254 240 190;
+
+  --c-emerald-50: 20 44 35;
+  --c-emerald-100: 24 58 45;
+  --c-emerald-200: 30 78 60;
+  --c-emerald-300: 52 180 130;
+  --c-emerald-400: 52 211 153;
+  --c-emerald-500: 45 200 145;
+  --c-emerald-600: 110 231 183;
+  --c-emerald-700: 150 240 200;
+  --c-emerald-800: 180 245 215;
+
+  --c-red-50: 55 26 26;
+  --c-red-100: 72 30 30;
+  --c-red-200: 100 40 40;
+  --c-red-300: 230 110 110;
+  --c-red-400: 248 113 113;
+  --c-red-500: 244 96 96;
+  --c-red-600: 250 140 140;
+  --c-red-700: 252 175 175;
+  --c-red-800: 253 200 200;
+
+  --c-lime-50: 34 46 20;
+  --c-lime-100: 44 60 24;
+  --c-lime-200: 60 82 30;
+  --c-lime-300: 160 220 70;
+  --c-lime-400: 173 235 70;
+  --c-lime-500: 150 215 45;
+  --c-lime-600: 190 245 110;
+  --c-lime-700: 205 248 150;
+  --c-lime-800: 220 250 180;
+
+  --c-orange-50: 52 32 18;
+  --c-orange-100: 68 42 22;
+  --c-orange-200: 92 56 28;
+  --c-orange-300: 240 150 70;
+  --c-orange-400: 251 146 60;
+  --c-orange-500: 249 130 40;
+  --c-orange-600: 253 180 120;
+  --c-orange-700: 254 205 160;
+  --c-orange-800: 254 220 185;
+}

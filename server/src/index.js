@@ -7,6 +7,8 @@ import prdsRoutes from "./routes/prds.js";
 import generateRoutes from "./routes/generate.js";
 import exportRoutes from "./routes/export.js";
 import { prdsRouter as shareOnPrds, sharedRouter } from "./routes/share.js";
+import { prdsRouter as commentsOnPrds, sharedRouter as commentsOnShared } from "./routes/comments.js";
+import qualityRoutes from "./routes/quality.js";
 import { serveFrontend } from "./static.js";
 
 const app = express();
@@ -20,7 +22,10 @@ app.use("/api/prds", prdsRoutes);
 app.use("/api/prds", generateRoutes);
 app.use("/api/prds", exportRoutes);
 app.use("/api/prds", shareOnPrds);
+app.use("/api/prds", commentsOnPrds);
+app.use("/api/prds", qualityRoutes);
 app.use("/api/shared", sharedRouter);
+app.use("/api/shared", commentsOnShared);
 
 serveFrontend(app);
 

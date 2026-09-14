@@ -18,7 +18,13 @@ prdsRouter.post("/:id/share", (req, res) => {
 sharedRouter.get("/:shareId", (req, res) => {
   const prd = store.getByShareId(req.params.shareId);
   if (!prd) return res.status(404).json({ error: "Shared PRD not found" });
-  res.json({ name: prd.name, content: prd.content, templateId: prd.templateId, meta: prd.meta });
+  res.json({
+    name: prd.name,
+    content: prd.content,
+    templateId: prd.templateId,
+    meta: prd.meta,
+    comments: prd.comments || {},
+  });
 });
 
 sharedRouter.post("/:shareId/import", (req, res) => {

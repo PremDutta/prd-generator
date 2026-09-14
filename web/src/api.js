@@ -30,6 +30,16 @@ export const api = {
   importShared: (shareId) => request(`/shared/${shareId}/import`, { method: "POST" }),
   exportUrl: (id, format) => `${BASE}/prds/${id}/export/${format}`,
 
+  clarify: (body) => request("/prds/clarify", { method: "POST", body: JSON.stringify(body) }),
+  score: (id) => request(`/prds/${id}/score`),
+
+  addComment: (id, body) => request(`/prds/${id}/comments`, { method: "POST", body: JSON.stringify(body) }),
+  toggleComment: (id, commentId, resolved) =>
+    request(`/prds/${id}/comments/${commentId}`, { method: "PATCH", body: JSON.stringify({ resolved }) }),
+  deleteComment: (id, commentId) => request(`/prds/${id}/comments/${commentId}`, { method: "DELETE" }),
+  addSharedComment: (shareId, body) =>
+    request(`/shared/${shareId}/comments`, { method: "POST", body: JSON.stringify(body) }),
+
   // Streaming generation: reads newline-delimited JSON progress events.
   async generatePrd(payload, onEvent) {
     const res = await fetch(`${BASE}/prds/generate`, {

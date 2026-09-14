@@ -62,6 +62,50 @@ Write ONLY the section content. No preamble, no "Here's the section", and do not
 repeat "${section.name}" as a heading — the viewer already shows the section title.`;
 }
 
+// Asked before generation so the doc starts with real numbers instead of
+// producing a pile of [NEEDS INPUT] markers the author has to backfill.
+export function buildClarifyPrompt({ featureName, rawInput, sectionNames }) {
+  return `You are a Senior Product Manager about to write a PRD titled "${featureName}".
+
+Here are the stakeholder's raw notes:
+---
+${rawInput}
+---
+
+The PRD will contain these sections: ${sectionNames.join(", ")}.
+
+Before writing, identify the 4-6 MOST important pieces of missing information —
+the facts that, if you don't have them, would force you to leave a placeholder or
+guess. Prioritise concrete, checkable facts: current baseline metrics, target
+numbers, deadlines, affected user segments, known constraints.
+
+Rules:
+- Ask only about things the notes do NOT already answer.
+- Each question must be answerable in one short line (a number, a date, a name).
+- No open-ended essay questions ("what is your vision?"). Nothing generic.
+
+Respond with ONLY a JSON array, no prose, no markdown fence:
+[{"question": "What is the current weekly conversion rate?", "why": "Needed for the success-metrics baseline"}]`;
+}
+
+// Models sometimes wrap JSON in prose or a ```json fence despite instructions,
+// so pull out the first array rather than trusting the whole response to parse.
+export function parseClarifyResponse(text) {
+  const start = text.indexOf("[");
+  const end = text.lastIndexOf("]");
+  if (start === -1 || end === -1 || end < start) return [];
+  try {
+    const parsed = JSON.parse(text.slice(start, end + 1));
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((q) => q && typeof q.question === "string" && q.question.trim())
+      .slice(0, 6)
+      .map((q, i) => ({ id: `q${i}`, question: q.question.trim(), why: typeof q.why === "string" ? q.why.trim() : "" }));
+  } catch {
+    return [];
+  }
+}
+
 export function buildRegeneratePrompt({ featureName, section, previousContent, feedback }) {
   return `You previously wrote the "${section.name}" section of a PRD for "${featureName}":
 

@@ -3,19 +3,27 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Save, CircleCheckBig, Eye, Copy, Check, LinkIcon, Sparkles } from "lucide-react";
 import { api } from "../api.js";
 import MarkdownView from "../components/MarkdownView.jsx";
-import { stripDocTitle } from "../prdContent.js";
+import SectionComments from "../components/SectionComments.jsx";
 import { Skeleton, SectionCardSkeleton } from "../components/Skeleton.jsx";
+import { parseSections, stripDocTitle } from "../prdContent.js";
+import { sectionIcon } from "../icons.js";
 
 export default function Shared() {
   const { shareId } = useParams();
   const navigate = useNavigate();
   const [prd, setPrd] = useState(null);
+  const [sections, setSections] = useState([]);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    api.getShared(shareId).then(setPrd).catch((e) => setError(e.message));
+    Promise.all([api.getShared(shareId), api.getConfig()])
+      .then(([shared, cfg]) => {
+        setPrd(shared);
+        setSections(cfg.templates[shared.templateId]?.sections || Object.values(cfg.templates)[0].sections);
+      })
+      .catch((e) => setError(e.message));
   }, [shareId]);
 
   const importPrd = async () => {
@@ -28,6 +36,11 @@ export default function Shared() {
     await navigator.clipboard.writeText(prd.content || "");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const addComment = async (sectionId, body, author) => {
+    const { comments } = await api.addSharedComment(shareId, { sectionId, body, author });
+    setPrd((p) => ({ ...p, comments }));
   };
 
   if (error) {
@@ -45,7 +58,7 @@ export default function Shared() {
     );
   }
 
-  if (!prd) {
+  if (!prd || !sections.length) {
     return (
       <div className="mx-auto max-w-3xl animate-fade-in">
         <Skeleton className="mb-4 h-8 w-64" />
@@ -54,11 +67,14 @@ export default function Shared() {
     );
   }
 
+  const sectionsContent = parseSections(prd.content || "", sections);
+  const present = sections.filter((s) => sectionsContent[s.id]);
+
   return (
     <div className="mx-auto max-w-3xl animate-fade-in">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
-          <Eye size={12} /> Shared with you &middot; read-only
+          <Eye size={12} /> Shared with you &middot; comments welcome
         </span>
         <div className="flex items-center gap-2">
           <button className="btn-secondary gap-1.5 text-xs" onClick={copyMarkdown}>
@@ -73,9 +89,35 @@ export default function Shared() {
       <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{prd.name}</h1>
       <p className="mt-1.5 text-sm text-slate-400">Product Requirements Document</p>
 
-      <div className="card mt-6 p-8">
-        <MarkdownView content={stripDocTitle(prd.content)} />
-      </div>
+      {present.length === 0 ? (
+        <div className="card mt-6 p-8">
+          <MarkdownView content={stripDocTitle(prd.content)} />
+        </div>
+      ) : (
+        <div className="mt-6 space-y-4">
+          {present.map((section) => {
+            const Icon = sectionIcon(section.id);
+            return (
+              <div key={section.id} className="card p-6">
+                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                    <Icon size={14} />
+                  </span>
+                  {section.name}
+                </h2>
+                <MarkdownView content={sectionsContent[section.id]} />
+                <div className="mt-4 border-t border-slate-100 pt-3">
+                  <SectionComments
+                    comments={(prd.comments && prd.comments[section.id]) || []}
+                    onAdd={({ body, author }) => addComment(section.id, body, author)}
+                    askAuthor
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col items-center gap-3 rounded-[10px] border border-dashed border-slate-200 px-6 py-8 text-center">
         <p className="text-sm text-slate-500">Want one of these for your own feature?</p>

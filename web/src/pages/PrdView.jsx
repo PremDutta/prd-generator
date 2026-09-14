@@ -5,6 +5,7 @@ import { api } from "../api.js";
 import { parseSections, buildContent } from "../prdContent.js";
 import { findGaps } from "../gaps.js";
 import SectionCard from "../components/SectionCard.jsx";
+import QualityScore from "../components/QualityScore.jsx";
 import { STATUSES } from "../constants.js";
 import { PrdViewSkeleton } from "../components/Skeleton.jsx";
 import { sectionIcon } from "../icons.js";
@@ -18,6 +19,7 @@ export default function PrdView() {
   const [editingMeta, setEditingMeta] = useState(false);
   const [metaDraft, setMetaDraft] = useState({});
   const [activeId, setActiveId] = useState(null);
+  const [score, setScore] = useState(null);
 
   useEffect(() => {
     setPrd(null);
@@ -29,6 +31,13 @@ export default function PrdView() {
       })
       .catch((e) => setError(e.message));
   }, [id]);
+
+  // Re-scored whenever the content changes, so filling a gap or accepting a
+  // rewrite immediately moves the grade rather than showing a stale one.
+  useEffect(() => {
+    if (!prd?.content) return;
+    api.score(id).then(setScore).catch(() => {});
+  }, [id, prd?.content]);
 
   // Scroll-spy: the active section is the last one whose top has scrolled
   // past a fixed offset near the top of the viewport. Recomputed from actual
@@ -78,6 +87,34 @@ export default function PrdView() {
     const updatedContent = buildContent(prd.name, { ...sectionsContent, [sectionId]: newText }, sections);
     const updated = await api.updatePrd(prd.id, { content: updatedContent });
     setPrd(updated);
+  };
+
+  // Replaces one "[NEEDS INPUT: ...]" marker with the answer the author typed.
+  // Only the first occurrence is swapped — identical markers elsewhere may well
+  // want different answers, so each is filled on its own.
+  const fillGap = async (sectionId, marker, value) => {
+    const text = sectionsContent[sectionId] || "";
+    const boldWrapped = `**${marker}**`;
+    const next = text.includes(boldWrapped)
+      ? text.replace(boldWrapped, value)
+      : text.replace(marker, value);
+    if (next === text) return;
+    await saveSection(sectionId, next);
+  };
+
+  const addComment = async (sectionId, body, author) => {
+    const { comments } = await api.addComment(prd.id, { sectionId, body, author });
+    setPrd((p) => ({ ...p, comments }));
+  };
+
+  const toggleComment = async (commentId, resolved) => {
+    const { comments } = await api.toggleComment(prd.id, commentId, resolved);
+    setPrd((p) => ({ ...p, comments }));
+  };
+
+  const deleteComment = async (commentId) => {
+    const { comments } = await api.deleteComment(prd.id, commentId);
+    setPrd((p) => ({ ...p, comments }));
   };
 
   const previewRegenerate = async (sectionId, feedback) => {
@@ -170,11 +207,18 @@ export default function PrdView() {
               history={(prd.history && prd.history[section.id]) || []}
               onSave={(text) => saveSection(section.id, text)}
               onRegeneratePreview={(feedback) => previewRegenerate(section.id, feedback)}
+              onFillGap={(marker, value) => fillGap(section.id, marker, value)}
+              comments={(prd.comments && prd.comments[section.id]) || []}
+              onAddComment={addComment}
+              onToggleComment={toggleComment}
+              onDeleteComment={deleteComment}
             />
           ))}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20">
+          <QualityScore score={score} />
+
           {gaps.length > 0 && (
             <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 shadow-xs">
               <p className="flex items-center gap-2 text-sm font-semibold text-amber-800">

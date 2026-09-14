@@ -34,7 +34,22 @@ actually say ends up looking like a fact in a doc your team will act on.
 - **Header metadata** — one-line description, team, contributors, resources
 - **Status, tags, search, filter, duplicate** for managing a library of PRDs,
   with gap-count and template badges at a glance
+- **Clarifying questions before generation** — the AI asks 4-6 targeted,
+  answerable questions ("what's your current conversion rate?") and folds your
+  answers into every section prompt. In testing, answering two of six questions
+  took a draft from 24 gaps / grade C to 6 gaps / grade B.
+- **Fill gaps inline** — click any flagged gap in the doc, type the real value,
+  and it's written into the PRD in place; the quality score moves as you go
+- **Quality score** — a weighted, deterministic rubric (open gaps, quantified
+  metrics, non-goals, acceptance criteria, risk mitigations, timeline, thin
+  sections) with a grade and specific fixes. No AI call, so it can't
+  hallucinate a passing grade
+- **Section comments, including from share links** — reviewers with the link can
+  comment per section without an account; the owner can resolve or delete.
+  This is what makes a share link a review loop rather than a broadcast
 - **Real shareable links**, backed by the server (not a fragile base64 URL)
+- **Command palette** (⌘K / Ctrl+K) to jump to any PRD or page
+- **Dark mode**, following your system preference by default
 - **Export** to Markdown, HTML, Word, or PDF (server-rendered via headless Chrome)
 - **Rendered markdown in the viewer** — tables, checklists, and bold render
   properly, not as raw `| pipe |` / `- [ ]` / `**asterisk**` syntax
@@ -151,6 +166,12 @@ size resolves this.
 | `POST` | `/api/prds/:id/share` | Create/get a share link |
 | `GET` | `/api/shared/:shareId` | Read a shared PRD (public) |
 | `POST` | `/api/shared/:shareId/import` | Import a shared PRD into your library |
+| `POST` | `/api/prds/clarify` | Generate clarifying questions from raw notes |
+| `GET` | `/api/prds/:id/score` | Quality score + per-check breakdown |
+| `POST` | `/api/prds/:id/comments` | Add a section comment (owner) |
+| `PATCH` | `/api/prds/:id/comments/:commentId` | Resolve / reopen a comment |
+| `DELETE` | `/api/prds/:id/comments/:commentId` | Delete a comment |
+| `POST` | `/api/shared/:shareId/comments` | Add a comment via a share link (public) |
 
 ## Known limitations / roadmap
 
@@ -158,6 +179,8 @@ size resolves this.
   for one PM's personal tool; would need a real database + auth for a team.
   The reviewer sign-off table is a manually-tracked checklist, not a real
   approval workflow with per-user accounts.
+- **Comments are unauthenticated** — anyone with a share link can comment under
+  any name they type. Fine for a trusted team link; not for a public URL.
 - No integrations yet (Jira/Linear ticket sync, Slack digest, Notion export,
   voice input via Whisper) — all natural next steps but need your own
   workspace credentials to wire up.

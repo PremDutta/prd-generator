@@ -1,3 +1,4 @@
+@import "./theme.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -74,19 +75,19 @@ body {
     @apply btn bg-brand-600 text-white shadow-soft hover:bg-brand-700 hover:shadow-brand-glow;
   }
   .btn-secondary {
-    @apply btn border border-slate-200 bg-white text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50;
+    @apply btn border border-slate-200 bg-surface text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50;
   }
   .btn-ghost {
     @apply btn text-slate-500 hover:bg-slate-100 hover:text-slate-900;
   }
   .card {
-    @apply rounded-[10px] border border-slate-200/80 bg-white shadow-card transition-shadow duration-150;
+    @apply rounded-[10px] border border-slate-200/80 bg-surface shadow-card transition-shadow duration-150;
   }
   .card-hover {
     @apply hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-elevated;
   }
   .input {
-    @apply w-full rounded-[9px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900
+    @apply w-full rounded-[9px] border border-slate-200 bg-surface px-3 py-2 text-sm text-slate-900
       shadow-xs transition-shadow duration-150 placeholder:text-slate-400
       focus:border-brand-400 focus:outline-none focus:ring-4 focus:ring-brand-100;
   }

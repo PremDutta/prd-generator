@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
+import CommandPalette from "./components/CommandPalette.jsx";
 import Home from "./pages/Home.jsx";
 import NewPrd from "./pages/NewPrd.jsx";
 import Library from "./pages/Library.jsx";
@@ -11,6 +12,7 @@ import NotFound from "./pages/NotFound.jsx";
 export default function App() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
+      <CommandPalette />
       <Navbar />
       <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">
         <Routes>

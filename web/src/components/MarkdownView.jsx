@@ -1,17 +1,77 @@
 // Minimal renderer for the markdown subset our own prompts produce:
 // headers, **bold**/*italic*, "- " bullet lists, "|"-tables, and "---" rules.
 // Editing still works on the raw markdown string; this is read-view only.
+import { createContext, useContext, useState } from "react";
 
 // Strict Mode's "[NEEDS INPUT: ...]" markers are rendered as a chip rather than
 // raw text, so a reader reads them as a deliberate open question instead of a
 // sloppy placeholder. Matched before bold/italic so a bolded marker still chips.
 const GAP_PATTERN = "\\[NEEDS INPUT:[^\\]]+\\]";
 
-function gapChip(text, key) {
+// inline() is called from paragraphs, list items, table cells and headings, so
+// the fill handler travels by context rather than being threaded through every
+// call site as a parameter.
+const FillGapContext = createContext(null);
+
+function GapChip({ marker }) {
+  const onFillGap = useContext(FillGapContext);
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const label = marker.replace(/^\[NEEDS INPUT:\s*/, "").replace(/\]$/, "");
+
+  const submit = async () => {
+    if (!value.trim() || saving) return;
+    setSaving(true);
+    try {
+      await onFillGap(marker, value.trim());
+    } finally {
+      setSaving(false);
+      setEditing(false);
+      setValue("");
+    }
+  };
+
+  if (!onFillGap) {
+    return <mark className="rounded bg-amber-100/70 px-1.5 py-0.5 text-[0.95em] font-medium text-amber-800">{label}</mark>;
+  }
+
+  if (editing) {
+    return (
+      <span className="inline-flex items-center gap-1 align-baseline">
+        <input
+          autoFocus
+          className="w-44 rounded border border-amber-300 bg-surface px-1.5 py-0.5 text-[0.95em] text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-200"
+          placeholder={label}
+          value={value}
+          disabled={saving}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
+            if (e.key === "Escape") setEditing(false);
+          }}
+        />
+        <button
+          type="button"
+          className="rounded bg-amber-500 px-1.5 py-0.5 text-[0.85em] font-medium text-white hover:bg-amber-600 disabled:opacity-50"
+          disabled={!value.trim() || saving}
+          onClick={submit}
+        >
+          {saving ? "..." : "Fill"}
+        </button>
+      </span>
+    );
+  }
+
   return (
-    <mark key={key} className="rounded bg-amber-100/70 px-1.5 py-0.5 text-[0.95em] font-medium text-amber-800">
-      {text.replace(/^\[NEEDS INPUT:\s*/, "").replace(/\]$/, "")}
-    </mark>
+    <button
+      type="button"
+      title="Click to fill this in"
+      className="rounded bg-amber-100/70 px-1.5 py-0.5 text-[0.95em] font-medium text-amber-800 underline decoration-amber-400 decoration-dotted underline-offset-2 transition-colors hover:bg-amber-200"
+      onClick={() => setEditing(true)}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -20,12 +80,12 @@ function inline(text, keyPrefix) {
   return parts.map((part, i) => {
     const key = `${keyPrefix}-${i}`;
     if (/^\[NEEDS INPUT:/.test(part)) {
-      return gapChip(part, key);
+      return <GapChip key={key} marker={part} />;
     }
     if (part.startsWith("**") && part.endsWith("**")) {
       const body = part.slice(2, -2);
       // A marker wrapped in bold: keep the chip, drop the redundant emphasis.
-      if (/^\[NEEDS INPUT:[^\]]+\]$/.test(body)) return gapChip(body, key);
+      if (/^\[NEEDS INPUT:[^\]]+\]$/.test(body)) return <GapChip key={key} marker={body} />;
       return <strong key={key}>{body}</strong>;
     }
     if (part.startsWith("*") && part.endsWith("*")) {
@@ -43,7 +103,7 @@ function parseTableRow(line) {
   return line.split("|").slice(1, -1).map((c) => c.trim());
 }
 
-export default function MarkdownView({ content }) {
+export default function MarkdownView({ content, onFillGap = null }) {
   const nodes = [];
   const lines = (content || "").split("\n");
 
@@ -138,5 +198,9 @@ export default function MarkdownView({ content }) {
   flushList("end");
   flushTable("end");
 
-  return <div className="text-[15px] leading-relaxed">{nodes}</div>;
+  return (
+    <FillGapContext.Provider value={onFillGap}>
+      <div className="text-[15px] leading-relaxed">{nodes}</div>
+    </FillGapContext.Provider>
+  );
 }
